@@ -1,24 +1,33 @@
 import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import { api } from "~/utils/api";
-import { filterUserForClient } from "~/server/helpers/filterUserForClient";
-
 import { createServerSideHelpers } from '@trpc/react-query/server';
 import superjson from 'superjson';
 import {prisma} from '~/server/db';
 import { appRouter } from "~/server/api/root";
 import { PageLayout } from "~/components/layout";
 import Image from "next/image";
+import { LoadingPage } from "~/components/loading";
+import { PostView } from "~/components/postview";
 
 
-const ProfileFeed = (props: { userId: string}) => {
-  const { data, isLoading} = api.posts.getPostsByUserId.useQuery({
-     userId: props.userId,
-  })
-  
-  if ( isLoading) return <LoadingPage />;
-  if ( !data || DataTransfer.length === 0) return <div>User has not posted</div>;
-}
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+
+  if (isLoading) return <LoadingPage />;
+
+  if (!data || data.length === 0) return <div>User has not posted</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
 
 
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
@@ -30,10 +39,11 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
 
   return (
     <>
-      <Head>
-        <title>{data.username}</title>
+       <Head>
+        <title>{data.username ?? data.externalUsername}</title>
       </Head>
       <PageLayout>
+       <div>
         <div className="relative h-36 bg-slate-600">
           <Image
             src={data.profileImageUrl}
@@ -47,8 +57,10 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
         <div className="p-4 text-2xl font-bold">{`@${data.username ?? data.externalUsername
           }`}</div>
         <div className="w-full border-b border-slate-400" />
-        {/* <ProfileFeed userId={data.id} /> */}
-      </PageLayout>
+       </div>
+        <ProfileFeed userId={data.id} />
+      </PageLayout> 
+       
     </>
   );
 };
