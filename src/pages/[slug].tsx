@@ -10,6 +10,17 @@ import { appRouter } from "~/server/api/root";
 import { PageLayout } from "~/components/layout";
 import Image from "next/image";
 
+
+const ProfileFeed = (props: { userId: string}) => {
+  const { data, isLoading} = api.posts.getPostsByUserId.useQuery({
+     userId: props.userId,
+  })
+  
+  if ( isLoading) return <LoadingPage />;
+  if ( !data || DataTransfer.length === 0) return <div>User has not posted</div>;
+}
+
+
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
     username,
